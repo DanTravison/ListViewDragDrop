@@ -106,8 +106,4 @@ public abstract class ObservableObject : INotifyPropertyChanged
     }
 
     #endregion SetProperty
-
-    #region Cached PropertyChangedEventArgs
-
-    #endregion Cached PropertyChangedEventArgs
 }
