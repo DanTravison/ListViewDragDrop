@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:model="clr-namespace:ListViewDragDrop.Model"
+             xmlns:viewmodel="clr-namespace:ListViewDragDrop.ViewModel"
+             xmlns:dragdrop="clr-namespace:ListViewDragDrop.DragDrop"
+             xmlns:res="clr-namespace:ListViewDragDrop.Resources"
+             xmlns:sf="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             x:Class="ListViewDragDrop.MainPage"
+             x:DataType="viewmodel:MainViewModel"
+             >
+
+    <ContentPage.Resources>
+        <Style TargetType="Ellipse" x:Key="ColorValueStyle"
+              x:DataType="model:NamedColor">
+            <Setter Property="Fill"
+                   Value="{Binding Color}"/>
+            <Setter Property="WidthRequest"
+                   Value="20"/>
+            <Setter Property="HeightRequest"
+                   Value="20"/>
+            <Setter Property="VerticalOptions"
+                   Value="Center"/>
+            <Setter Property="Margin"
+                   Value="0"/>
+        </Style>
+
+        <Style TargetType="Label" x:Key="ColorNameStyle"
+              x:DataType="model:NamedColor">
+            <Setter Property="HorizontalTextAlignment"
+                   Value="Start"/>
+            <Setter Property="VerticalTextAlignment"
+                   Value="Center"/>
+            <Setter Property="FontSize"
+                   Value="20"/>
+            <Setter Property="Margin"
+                   Value="0"/>
+            <Setter Property="Text"
+                   Value="{Binding Name}"/>
+            <Setter Property="MaxLines"
+                   Value="1"/>
+        </Style>
+
+        <DataTemplate x:Key="NamedColorItemTemplate" x:DataType="model:NamedColor">
+            <Grid Margin="0" 
+                 BackgroundColor="Transparent"
+                 ColumnDefinitions="Auto, *"
+                 ColumnSpacing="5">
+                <Ellipse Grid.Column="0"
+                        Style="{StaticResource ColorValueStyle}"/>
+                <Label Grid.Column="1"
+                      Style="{StaticResource ColorNameStyle}"/>
+            </Grid>
+        </DataTemplate>
+
+        <Style TargetType="sf:SfListView" x:Key="DragDropStyle">
+            <!-- Populate the DragItemStyle attached property used by DragItemView -->
+            <Setter Property="dragdrop:DragItemStyle.DragItemStyle">
+                <dragdrop:DragItemStyle InvalidColor="IndianRed"
+                                        InvalidGlyph="{x:Static res:FluentUI.PresenceBlocked}"
+                                        ValidColor="SpringGreen"
+                                        ValidGlyph="{x:Static res:FluentUI.ArrowSortFilled}"
+                                        />
+            </Setter>
+            <!-- Define the DragItemTemplate with our custom DragItemView. -->
+            <Setter Property="DragItemTemplate">
+                <DataTemplate>
+                    <!-- DragItemView uses ListView.ItemTemplate to populate
+                         the embedded item view and the ListView.DragItemStyle
+                         attached property to provide drag/drop visual feedback. 
+                    -->
+                    <dragdrop:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
+                </DataTemplate>
+            </Setter>
+        </Style>
+
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="*, Auto, Auto">
+        <!-- The style defines the DragItemTemplate and the DragItemStyle -->
+        <sf:SfListView Style="{StaticResource DragDropStyle}" 
+                       x:Name="ColorList"
+                       Grid.Row="0" 
+                       ItemsSource="{Binding Colors}"
+                       ItemTemplate="{StaticResource NamedColorItemTemplate}"
+                       ItemDragging="OnItemDragging"
+                       DragStartMode="OnHold"
+                       SelectionMode="Single"
+                       ItemSpacing="0"
+                       SelectionBackground="CornflowerBlue"
+                       Margin="5,0,5,0"
+                       >
+            <sf:SfListView.DragDropController UpdateSource="{Binding UpdateSource}"/>
+        </sf:SfListView>
+
+        <Label Text="Drag an item to a new position."
+               Grid.Row="1"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               />
+        <Label Text="NOTE: Items cannot be dropped on an item with the same first letter."
+               Grid.Row="2"
+               FontAttributes="Italic"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               />
+    </Grid>
+</ContentPage>
