@@ -111,7 +111,7 @@ MainPage.OnItemDragging proxies the ItemDraggingEventArgs to the appropriate IDr
 For DragAction.Dragging and DragAction.Drop actions, it also retrieves the data object for the target item.
 
 After calling the handler, it sets ItemDraggingEventArgs.Cancel if a cancel is needed and then calls
-DragItemStyle.DragState update the visual feedback.
+DragItemStyle.DragState to update the visual feedback.
 
 ## Possible Enhancements
 There are a few areas where logic could be better encapsulated or improved:
