@@ -130,37 +130,13 @@ and the IDragDropHandler.
 When combinded with IDragState, it would allow completely encapsulating drag/drop event logic in a separate class
 making the MainPage's ItemDragging event handler a simple passthrough.
 
-## Real-world usage considerations
-While the model presented here can be used in as-is with modifications for the visual feedback,
-real-world usage will likely require additional features.
-
-For my usage, I already have a derived SfListView class that provides other capabilities. 
-As such, my plan is to provide an alternative path for ItemDragging.
-* Define an IDragDropHandler property on the SfListView.
-* When set, register for ItemDragging internally and route the event to the handler.
-* This avoids the need for encapsulating the logic in the MainPage (i.e., Drag drop handling is opaque to the page).
-
-From the consumer's perspective, the usage would be as follows:
-
-* The consumer will provide the custom DragItemView and DragItemStyle in the SfListView style.
-* The consumer's view model will implement IDragDropHandler methods and provide the UpdateSource property
-  or provide an IDragDropHandler property that can be bound to the SfListView.
-* THe details for updating drag state will be encapsulated in the consumer's view model directly.
-
-Most of my use cases are straight forward and can use boiler plate code and only need to override CanDrop 
-to restrict drop targets.
-
-I have one use case where dragging requires also moving related items within the source collection.  
-For that, I'll have stricter CanDrop constraints and have to implement collection updates manually.
-
 ## Caveats
 * Syncfusion's drag and drop support in SfListView is very good but has one usability issue (In my opinion). 
 To initiate a drag, it appears a long press is required. As a user, I find this takes getting used to, esspecially
 when using a mouse on the desktop.  I would prefer a click and drag to initiate a drag but I have not found a way to
 accomplish this without bypassing SfListView's built-in drag and drop support.
 
-* I have made no attempt to prototype moving dragging items between different SfListViews. None of my use cases
-require it.
+* I have made no attempt to prototype dragging items between different SfListViews.
 
 * The current code has only been tested on Windows. Since I need this to be cross-platform, I will be testing it on
 Android, iOS, and MacCatalyst.
