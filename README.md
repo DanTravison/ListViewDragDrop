@@ -35,9 +35,6 @@ The contract is defined by the IDragDropHandler interface which has three method
 
 IDragDropHandler is implemented by MainViewModel.
 
-*NOTE:* When the SfListView owns updating the source collection, the view model only verifies
-the drop is valid.
-
 In addition to implementing IDragDropHandler, MainViewModel also defines the following properties:
 
 * Colors: Provides the SfListView.ItemsSource
@@ -53,7 +50,7 @@ addditional visual cues that indicate if the target is a valid drop target.
 The sample accomplishes this using the DragItemView control template. The visual feedback is 
 rather simple, it uses a ContentPresenter to display the dragged item with an adjacent
 colored Glyph that indicates the current drop status.  It is intended as an example of writing
-a custom drag item view..
+a custom drag item view.
 
 It is consumed in the SfListView.DragItemTemplate DataTemplate property. The sample
 does this in a SfListView style:
@@ -102,10 +99,10 @@ The sample application demonstrates how to use the DragItemView and DragItemStyl
 
 MainPage.xaml sets the typical properties on SfListView such as ItemTemplate, ItemsSource, SelectionMode, etc.
 
-For drag and drop, it sets the following:
+For drag and drop, it adds the following:
 * It subscribes to the ItemDragging event with OnItemDragging.
 * Sets DragStartMode to OnHold.
-* Sets a custom style that includes the DragItemTemplate and DragItemStyle.
+* Defines and uses a SfListView.Style that includes the DragItemTemplate and DragItemStyle.
 
 MainPage.OnItemDragging proxies the ItemDraggingEventArgs to the appropriate IDragDropHandler method.
 For DragAction.Dragging and DragAction.Drop actions, it also retrieves the data object for the target item.
