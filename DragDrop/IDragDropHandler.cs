@@ -6,6 +6,19 @@
 public interface IDragDropHandler
 {
     /// <summary>
+    /// Gets the value indicating if the control should update the source collection.
+    /// </summary>
+    /// <value>
+    /// true if the control updates the source collection; otherwise, false if hte 
+    /// handler updates the source collection in the <see cref="IDragDropHandler.Drop"/>
+    /// method.
+    /// </value>
+    bool UpdateSource
+    {
+        get;
+    }
+
+    /// <summary>
     /// Determines if an item can be dragged.
     /// </summary>
     /// <param name="item">The item to drag.</param>

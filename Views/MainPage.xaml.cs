@@ -2,7 +2,7 @@
 using ListViewDragDrop.ViewModel;
 using Syncfusion.Maui.ListView;
 
-namespace ListViewDragDrop;
+namespace ListViewDragDrop.Views;
 
 public partial class MainPage : ContentPage
 {
@@ -22,7 +22,7 @@ public partial class MainPage : ContentPage
     /// the event args.</param>
     /// <remarks>
     /// The logic contained here could be refactored into a reusable class.
-    /// 1: Define an IDragState interface with an DragState(bool isValid) method
+    /// 1: Define an IDragState interface with an StateChanged(bool isValid) method
     /// and implement it in DragItemStyle. 
     /// 2: Construct the class with the IDragDropHandler implementation.
     /// 3: Define an public method such as ProcessDragEvent(IDragState, ItemDraggingEventArgs)
@@ -78,8 +78,12 @@ public partial class MainPage : ContentPage
                 e.Cancel = !result;
                 break;
         }
+
         // NOTE: Assuming the DragItemStyle can change because it is a
         // BindableProperty.  As such, request it on each call.
-        DragItemStyle.GetDragItemStyle(ColorList).DragState(result);
+        if (DragItemStyle.GetDragItemStyle(ColorList) is INotifyDragState notify)
+        {
+            notify.StateChanged(result);
+        }
     }
 }

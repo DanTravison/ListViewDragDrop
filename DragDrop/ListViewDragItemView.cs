@@ -1,29 +1,38 @@
+﻿using Syncfusion.Maui.ListView;
+
 namespace ListViewDragDrop.DragDrop;
 
-using Syncfusion.Maui.ListView;
-
 /// <summary>
-/// Provides a custom drag item view for use in the <see cref="SfListView.DragItemTemplate"/>.
+/// Provides an abstract base class for a drag item visualizer
 /// </summary>
-/// <remarks>
-/// This view embeds the item's view created by the <see cref="SfListView.ItemTemplate"/>
-/// and displays it in a grid with a Label indicating the drag state.
-/// </remarks>
-public partial class DragItemView : ContentView
+/// <typeparam name="T">The type of <see cref="DragItemStyle"/> consumed by the derived visualizer.</typeparam>
+public abstract class ListViewDragItemView<T> : ContentView
+    where T : ListViewDragItemStyle
 {
-    ContentPresenter _itemPresenter;
+    /// <summary>
+    /// Gets the content presenter.
+    /// </summary>
+    /// <remarks>
+    /// Derived class must name their ContentPresenter "ItemPresenter" in their XAML.
+    /// </remarks>
+    protected ContentPresenter ItemPresenter
+    {
+        get;
+        private set;
+    }
 
-    public DragItemView()
-	{
-		InitializeComponent();
-	}
-
+    /// <summary>
+    /// Handles apply template to resolve the <see cref="ItemPresenter"/>.
+    /// </summary>
     protected override void OnApplyTemplate()
     {
-        _itemPresenter = GetTemplateChild("ItemPresenter") as ContentPresenter;
+        ItemPresenter = GetTemplateChild(nameof(ItemPresenter)) as ContentPresenter;
         base.OnApplyTemplate();
     }
 
+    /// <summary>
+    /// Handles changes to <see cref="BindingCondition"/> to update the item's view.
+    /// </summary>
     protected override void OnBindingContextChanged()
     {
         base.OnBindingContextChanged();
@@ -31,15 +40,18 @@ public partial class DragItemView : ContentView
         if (BindingContext != null && ItemTemplate != null)
         {
             // Create the item's view and set it as the content of the ContentPresenter.
-            _itemPresenter.Content = ItemTemplate.CreateView(this, BindingContext);
+            ItemPresenter.Content = ItemTemplate.CreateView(this, BindingContext);
         }
         else
         {
-            _itemPresenter.Content = null;
+            ItemPresenter.Content = null;
         }
     }
 
-    DataTemplate ItemTemplate
+    /// <summary>
+    /// Gets the item <see cref="DataTemplate"/>.
+    /// </summary>
+    protected DataTemplate ItemTemplate
     {
         get
         {
@@ -69,12 +81,12 @@ public partial class DragItemView : ContentView
     (
         nameof(ListView),
         typeof(SfListView),
-        typeof(DragItemView),
+        typeof(ListViewDragItemView<T>),
         null,
         BindingMode.OneWay,
         propertyChanged: (bindableObject, oldValue, newValue) =>
         {
-            if (bindableObject is DragItemView view)
+            if (bindableObject is ListViewDragItemView<T> view)
             {
                 view.OnListViewChanged(oldValue as SfListView, newValue as SfListView);
             }
@@ -90,13 +102,13 @@ public partial class DragItemView : ContentView
         if (newView != null)
         {
             newView.PropertyChanged += OnListViewPropertyChanged;
-            OnPropertyChanged(DragItemStyle.DragItemStyleProperty.PropertyName);
+            OnPropertyChanged(ListViewDragItemStyle.DragItemStyleProperty.PropertyName);
         }
     }
 
     private void OnListViewPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == DragItemStyle.DragItemStyleProperty.PropertyName)
+        if (e.PropertyName == ListViewDragItemStyle.DragItemStyleProperty.PropertyName)
         {
             OnPropertyChanged(e.PropertyName);
         }
@@ -106,13 +118,16 @@ public partial class DragItemView : ContentView
 
     #region DragItemStyle
 
-    public DragItemStyle DragItemStyle
+    /// <summary>
+    /// Gets the <see cref="DragItemStyle"/>.
+    /// </summary>
+    public T DragItemStyle
     {
         get
         {
             if (ListView != null)
             {
-                return DragItemStyle.GetDragItemStyle(ListView);
+                return ListViewDragItemStyle.GetDragItemStyle(ListView) as T;
             }
             return null;
         }

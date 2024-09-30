@@ -5,7 +5,6 @@ using ListViewDragDrop.Model;
 using ListViewDragDrop.ObjectModel;
 using System.Collections.ObjectModel;
 using ListViewDragDrop.DragDrop;
-using System.ComponentModel;
 
 /// <summary>
 /// Provides a view model for illustrating drag and drop logic.
@@ -13,26 +12,12 @@ using System.ComponentModel;
 internal class MainViewModel : ObservableObject, IDragDropHandler
 {
     /// <summary>
-    /// Determines if <see cref="IDragDropHandler.Drop"/> should update the source
-    /// collection.
-    /// </summary>
-    bool _updateSource;
-
-    /// <summary>
     /// Initializes a new instance of this class.
     /// </summary>
-    /// <param name="updateSource">true to update the source collection (Colors) when
-    /// Drop is handled; otherwise, false when the SfListView updates the source collection
-    /// directly.
-    /// <para>
-    /// Specify false when <see cref="DragDropController.UpdateSource"/> is set to true, the default; 
-    /// otherwise, specify true to have <see cref="IDragDropHandler.Drop"/> update the 
-    /// source collection.
-    /// </para>
-    /// </param>
+    /// <param name="updateSource">The value for <see cref="UpdateSource"/>.</param>
     public MainViewModel(bool updateSource = false)
     {
-        _updateSource = updateSource;
+        UpdateSource = updateSource;
         Colors = new(NamedColor.All);
     }
 
@@ -44,20 +29,25 @@ internal class MainViewModel : ObservableObject, IDragDropHandler
         get;
     }
 
+    #region IDragDropHandler
+
     /// <summary>
-    /// Gets or sets the value indicating if the <see cref="SfListView"/> should
+    /// Gets the value indicating if the <see cref="SfListView"/> should
     /// automatically update the source collection when Drop is handled.
     /// </summary>
     /// <value>true to enable updating the collection source by <see cref="SfListView"/>;
     /// otherwise, false to have <see cref="Drop"/> update the source collection.</value>
     public bool UpdateSource
     {
-        get => _updateSource;
-        set => SetProperty(ref _updateSource, value, UpdateSourceChangedEventArgs);
+        get;
     }
 
-    #region IDragDropHandler
-
+    /// <summary>
+    /// Determines if an item can be dragged.
+    /// </summary>
+    /// <param name="item">The item to drag.</param>
+    /// <param name="itemIndex">The zero-based index of the item to drag.</param>
+    /// <returns>true if the item can be dragged; otherwise, false.</returns>
     public bool CanDrag(object item, int itemIndex)
     {
         return (item is NamedColor);
@@ -69,6 +59,14 @@ internal class MainViewModel : ObservableObject, IDragDropHandler
         return color.Name[0] != targetColor.Name[0];
     }
 
+    /// <summary>
+    /// Determines if an item can be dropped on a target.
+    /// </summary>
+    /// <param name="item">The dragged item.</param>
+    /// <param name="itemIndex">The zero-based index of the dragged item.</param>
+    /// <param name="target">The target item.</param>
+    /// <param name="targetIndex">The zero-based index of the target item.</param>
+    /// <returns>true if the item can be dropped; otherwise, false.</returns>
     public bool CanDrop(object item, int itemIndex, object target, int targetIndex)
     {
         bool result = false;
@@ -79,6 +77,14 @@ internal class MainViewModel : ObservableObject, IDragDropHandler
         return result;
     }
 
+    /// <summary>
+    /// Drops an item on a target.
+    /// </summary>
+    /// <param name="item">The item to drop.</param>
+    /// <param name="itemIndex">The zero-based index of the item to drop.</param>
+    /// <param name="target">The target item.</param>
+    /// <param name="targetIndex">The zero-based index of the target item.</param>
+    /// <returns>true if the item was dropped; otherwise, false.</returns>
     public bool Drop(object item, int itemIndex, object target, int targetIndex)
     {
         bool result = CanDrop(item, itemIndex, target, targetIndex);
@@ -92,6 +98,4 @@ internal class MainViewModel : ObservableObject, IDragDropHandler
     }
 
     #endregion IDragDropHandler
-
-    static readonly PropertyChangedEventArgs UpdateSourceChangedEventArgs = new(nameof(UpdateSource));
 }

@@ -66,13 +66,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="DragDrop\DragItemView.xaml.cs">
+	  <Compile Update="Views\DragItemView.xaml.cs">
 	    <DependentUpon>DragItemView.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="DragDrop\DragItemView.xaml">
+	  <MauiXaml Update="Views\DragItemView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

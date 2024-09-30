@@ -6,7 +6,8 @@
              xmlns:dragdrop="clr-namespace:ListViewDragDrop.DragDrop"
              xmlns:res="clr-namespace:ListViewDragDrop.Resources"
              xmlns:sf="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
-             x:Class="ListViewDragDrop.MainPage"
+             xmlns:views="clr-namespace:ListViewDragDrop.Views"
+             x:Class="ListViewDragDrop.Views.MainPage"
              x:DataType="viewmodel:MainViewModel"
              >
 
@@ -55,21 +56,17 @@
 
         <Style TargetType="sf:SfListView" x:Key="DragDropStyle">
             <!-- Populate the DragItemStyle attached property used by DragItemView -->
-            <Setter Property="dragdrop:DragItemStyle.DragItemStyle">
-                <dragdrop:DragItemStyle InvalidColor="IndianRed"
-                                        InvalidGlyph="{x:Static res:FluentUI.PresenceBlocked}"
-                                        ValidColor="SpringGreen"
-                                        ValidGlyph="{x:Static res:FluentUI.ArrowSortFilled}"
-                                        />
+            <Setter Property="views:DragItemStyle.DragItemStyle">
+                <views:DragItemStyle InvalidColor="IndianRed"
+                                     InvalidGlyph="{x:Static res:FluentUI.PresenceBlocked}"
+                                     ValidColor="SpringGreen"
+                                     ValidGlyph="{x:Static res:FluentUI.ArrowSortFilled}"
+                                     />
             </Setter>
-            <!-- Define the DragItemTemplate with our custom DragItemView. -->
+            <!-- Define the DragItemTemplate with our custom drag item visualizer. -->
             <Setter Property="DragItemTemplate">
                 <DataTemplate>
-                    <!-- DragItemView uses ListView.ItemTemplate to populate
-                         the embedded item view and the ListView.DragItemStyle
-                         attached property to provide drag/drop visual feedback. 
-                    -->
-                    <dragdrop:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
+                    <views:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
                 </DataTemplate>
             </Setter>
         </Style>

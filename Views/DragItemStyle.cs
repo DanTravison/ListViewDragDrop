@@ -1,12 +1,12 @@
-﻿using ListViewDragDrop.Resources;
-using Syncfusion.Maui.ListView;
+﻿using ListViewDragDrop.DragDrop;
+using ListViewDragDrop.Resources;
 
-namespace ListViewDragDrop.DragDrop;
+namespace ListViewDragDrop.Views;
 
 /// <summary>
 /// Provides a style for a drag item to indicate its valid or invalid state.
 /// </summary>
-public sealed class DragItemStyle : BindableObject
+public sealed class DragItemStyle : ListViewDragItemStyle
 {
     #region Constants
 
@@ -50,7 +50,7 @@ public sealed class DragItemStyle : BindableObject
     /// Sets the drag item to the valid or invalid state.
     /// </summary>
     /// <param name="isValid"></param>
-    public void DragState(bool isValid)
+    public override void StateChanged(bool isValid)
     {
         if (isValid)
         {
@@ -215,40 +215,4 @@ public sealed class DragItemStyle : BindableObject
     #endregion InvalidGlyph
 
     #endregion Bindable Properties
-
-    #region Attached DragItemStyle Property
-
-    /// <summary>
-    /// Provides an attached <see cref="DragItemStyle"/> <see cref="SfListView"/> attached property.
-    /// </summary>
-    public static readonly BindableProperty DragItemStyleProperty = BindableProperty.CreateAttached
-    (
-        nameof(DragItemStyle),
-        typeof(DragItemStyle),
-        typeof(SfListView),
-        new DragItemStyle(),
-        BindingMode.OneWay
-    );
-
-    /// <summary>
-    /// Provides a get method for <see cref="DragItemStyle"/> attached <see cref="SfListView"/> property.
-    /// </summary>
-    /// <param name="view">The <see cref="BindableObject"/> to query.</param>
-    /// <returns>The <see cref="DragItemStyle"/> defined for the <paramref name="view"/>.</returns>
-    public static DragItemStyle GetDragItemStyle(BindableObject view)
-    {
-        return view.GetValue(DragItemStyleProperty) as DragItemStyle;
-    }
-
-    /// <summary>
-    /// Provides the set method for <see cref="DragItemStyle"/> attached <see cref="SfListView"/> property..
-    /// </summary>
-    /// <param name="view">The <see cref="BindableObject"/> to update.</param>
-    /// <returns>The <see cref="DragItemStyle"/> to set on the view <paramref name="view"/>.</returns>
-    public static void SetDragItemStyle(BindableObject view, DragItemStyle value)
-    {
-        view.SetValue(DragItemStyleProperty, value);
-    }
-
-    #endregion Attached DragItemStyle Property   
 }

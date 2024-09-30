@@ -1,4 +1,4 @@
-# ListViewEvents
+# ListViewDragDrop
 A test project demonstrating SfListView ItemDragging with custom drag item visualization.
 
 The goal of the sample is as follows:
@@ -62,7 +62,7 @@ does this in a SfListView style:
              the embedded item view and the ListView.DragItemStyle
              attached property to provide drag/drop visual feedback. 
         -->
-        <dragdrop:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
+        <views:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
     </DataTemplate>
 </Setter>
 ```
@@ -81,20 +81,49 @@ The purpose if this class is as follows:
 * Defines an attached property, DragItemStyle, to attach it to the associated SfListView.
 
 An instance of the class is typically created in Xaml and the sample application does this
-in a a SfListView style:
+in MainPage.xaml in the SfListView style:
 
 ```xaml
-<Setter Property="dragdrop:DragItemStyle.DragItemStyle">
-    <dragdrop:DragItemStyle InvalidColor="IndianRed"
-                            InvalidGlyph="{x:Static res:FluentUI.PresenceBlocked}"
-                            ValidColor="SpringGreen"
-                            ValidGlyph="{x:Static res:FluentUI.ArrowSortFilled}"
-                            />
+<Setter Property="views:DragItemStyle.DragItemStyle">
+    <views:DragItemStyle InvalidColor="IndianRed"
+                         InvalidGlyph="{x:Static res:FluentUI.PresenceBlocked}"
+                         ValidColor="SpringGreen"
+                         ValidGlyph="{x:Static res:FluentUI.ArrowSortFilled}"
+                         />
 </Setter>
 ```
-*NOTE:* If the attached property is not set, a default instance is used.
 
-## Putting the pieces together
+# Visualizer Helper classes
+Two abstract base classes are defined in the DragDrop folder to provide a common interface for creating
+the drag item visualizer and it's associated style.
+
+## ListViewDragItemStyle
+Provides the abstract base class for a drag item style. It is a bindable object and requires the derived
+class to implement INotifyDragState.StateChanged.  
+
+This is where the DragItemStyle attached property is declared.
+
+## ListViewDragItemView<T>
+Provides a strongly typed abstract base class for implementing a drag item visualizer.
+It provides the core logic for binding the visualizer to the associated drag item style 
+and the visualizer to the dragged item. 
+
+* Defines a strongly DragItemStyle property for use in the derived visualizer.
+  * The derived class accesses it in Xaml using TemplateBinding DragItemStyle.  
+  * An instance of the strongly typed style property is read from the DragItemStyle attached property.
+
+* Defines the property ContentPresenter ItemPresenter.
+  * The derived class is expected to name its ContentPresenter with the name 'ItemPresenter'.
+  * ContentPresenter.View is set by creating the view from the ListView.ItemTemplate.
+
+* Defines a ListView BindableProperty
+  * This is used by the base class to access the ListView.ItemTemplate.
+  * The property is set in the consumer's DragItemTemplate DataTemplate
+
+The derived class is used in Xaml when declaring the DragItemTemplate. As shown above, and the sample 
+application does this in MainPage.xaml in a SfListView style:
+
+# Putting the pieces together
 The sample application demonstrates how to use the DragItemView and DragItemStyle in the SfListView.
 
 MainPage.xaml sets the typical properties on SfListView such as ItemTemplate, ItemsSource, SelectionMode, etc.
@@ -110,32 +139,44 @@ For DragAction.Dragging and DragAction.Drop actions, it also retrieves the data 
 After calling the handler, it sets ItemDraggingEventArgs.Cancel if a cancel is needed and then calls
 DragItemStyle.DragState to update the visual feedback.
 
-## Possible Enhancements
-There are a few areas where logic could be better encapsulated or improved:
+## Integration Notes/Experience
 
-1: Define an IDragState interface that has an DragState property or method.
-The goal is to provide a clear path for the consumer to update the drag state regardless of the drag item view.
-In other words, the SfListView.ItemDragging handler should be able to update the state without 
-requiring knowledge of the drag item view.
+After successfully integrating this into my production project, I have the following observations:
 
-This would also allow passing it to the IDragDropHandler to set the drag state without exposing the view.
+1: The ItemDragging handler in Mainpage.xaml.cs should be moved to a separate class. For every use case I have,
+the code is the same.
 
-2: Move the logic in MainPage.OnItemDragging to a separate class or static method.
-MainPage.OnItemDragging would route the call the method with the SfListView.DataSource, the ItemDraggingEventArgs 
-and the IDragDropHandler.
+In my production code, I already have a derived SfListView class and it seemed the logic place for the logic.
 
-When combinded with IDragState, it would allow completely encapsulating drag/drop event logic in a separate class
-making the MainPage's ItemDragging event handler a simple passthrough.
+Instead of attempting to replace the ItemDragging event, I added a new property, DragDropHandler that can be 
+used instead of ItemDragging. The consumer can use the ItemDragging event directly or set the DragDropHandler. 
+When setting the DragDropHandler, the derived ListView will handle the ItemDragging event and DragDropHandler the handler.
 
-## Caveats
-* Syncfusion's drag and drop support in SfListView is very good but has one usability issue (In my opinion). 
-To initiate a drag, it appears a long press is required. As a user, I find this takes getting used to, esspecially
-when using a mouse on the desktop.  I would prefer a click and drag to initiate a drag but I have not found a way to
-accomplish this without bypassing SfListView's built-in drag and drop support.
+This left two open issues, setting DragDropController.UpdateSource and handling drag state changes.
 
-* I have made no attempt to prototype dragging items between different SfListViews.
+To address DragDropController.UpdateSource, IDragDropHandler has been extended with a read-only 
+UpdateSource property. 
 
-* The current code has only been tested on Windows. Since I need this to be cross-platform, I will be testing it on
-Android, iOS, and MacCatalyst.
+The ListView will set DragDropController.UpdateSource to this value when the handler is set. This makes
+sense since the handler is the one that knows if it should update the source collection.
 
-* I have no plans to test on Tizen.
+To address drag state changes, I changed DragItemStyle to be an abstract base class named
+ListViewDragItemStyle and implemented the INotifyDragState interface. 
+
+ListView reads the attached property as an INotifyDragState and uses it, when set, 
+to notify state changes. Custom visualizers access the attached property using their strongly 
+typed DragItemStyle.
+
+Since ListView depends on DragItemStyle and INotifyDragState, these have been moved to the 
+ListView namespace.  In practice, all classes and interfaces in the sample's DragDrop folder
+are relocated to my ListView namespace.
+
+For the view models, I define a IDragDropHandler property and set it to an implementation class
+specific to the underlying model. 
+
+For the visualizer, most of my use cases use the a common visualizer, similar to the one
+in the sample. For my complex case, I'm still deciding if I need a different visualizer or if
+I can use the common visualizer.
+
+The visualizer abstraction is really starting to grow on me. It's trivial to experiment with
+different alternate visualizers or the same visualizer with various styles.
