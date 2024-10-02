@@ -20,33 +20,38 @@ public partial class MainPage : ContentPage
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The <see cref="ItemDraggingEventArgs"/> containing
     /// the event args.</param>
-    /// <remarks>
-    /// The logic contained here could be refactored into a reusable class.
-    /// 1: Define an IDragState interface with an StateChanged(bool isValid) method
-    /// and implement it in DragItemStyle. 
-    /// 2: Construct the class with the IDragDropHandler implementation.
-    /// 3: Define an public method such as ProcessDragEvent(IDragState, ItemDraggingEventArgs)
-    /// 4: Retrieve the DragItemStyle from the SfListView.
-    /// 4: Call ProcessDragEvent from here.
-    /// </remarks>
     void OnItemDragging(object sender, ItemDraggingEventArgs e)
     {
+        IDragDropHandler handler;
+        SfListView listView;
+
         object target = null;
         int targetIndex = -1;
+
+        if (ReferenceEquals(sender, ColorList))
+        {
+            handler = _model.ColorDragHandler;
+            listView = ColorList;
+        }
+        else
+        {
+            handler = _model.PlayerDragHandler;
+            listView = PlayerList;
+        }
 
         if (e.Action == DragAction.Dragging || e.Action == DragAction.Drop)
         {
             targetIndex = e.NewIndex;
             // Get the target data item. This allows the IDragDropHandler
             // to make decisions based on either the target item or the target index.
-            target = ColorList.DataSource.DisplayItems[e.NewIndex];
+            target = listView.DataSource.DisplayItems[e.NewIndex];
         }
         bool result = false;
 
         switch (e.Action)
         {
             case DragAction.Start:
-                result = _model.CanDrag(e.DataItem, e.NewIndex);
+                result = handler.CanDrag(e.DataItem, e.NewIndex);
                 e.Cancel = !result;
                 break;
 
@@ -54,7 +59,7 @@ public partial class MainPage : ContentPage
 
                 if (e.OldIndex != e.NewIndex)
                 {
-                    result = _model.CanDrop(e.DataItem, e.OldIndex, target, targetIndex);
+                    result = handler.CanDrop(e.DataItem, e.OldIndex, target, targetIndex);
                 }
                 else
                 {
@@ -71,7 +76,13 @@ public partial class MainPage : ContentPage
                 // is handled as a NOP request.
                 if (e.OldIndex != e.NewIndex)
                 {
-                    result = _model.Drop(e.DataItem, e.OldIndex, target, targetIndex);
+                    result = handler.Drop(e.DataItem, e.OldIndex, target, targetIndex);
+                    /* FUTURE: Expand the target if it is a group and not expanded.
+                    if (result && target is GroupResult group && !group.IsExpand)
+                    {
+                        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(100), () => ExpandGroup(listView, group.Key));
+                    }
+                    */
                 }
                 // Cancel the request if the drop location is not valid or if the drop location
                 // is the original location of the dragged item.
@@ -84,6 +95,18 @@ public partial class MainPage : ContentPage
         if (DragItemStyle.GetDragItemStyle(ColorList) is INotifyDragState notify)
         {
             notify.StateChanged(result);
+        }
+    }
+
+    void ExpandGroup(SfListView listView, object key)
+    {
+        foreach (var group in listView.DataSource.Groups)
+        {
+            if (ReferenceEquals(group.Key, key))
+            {
+                listView.ExpandGroup(group);
+                break;
+            }
         }
     }
 }

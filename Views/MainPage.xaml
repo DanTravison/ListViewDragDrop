@@ -6,12 +6,17 @@
              xmlns:dragdrop="clr-namespace:ListViewDragDrop.DragDrop"
              xmlns:res="clr-namespace:ListViewDragDrop.Resources"
              xmlns:sf="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             xmlns:data="clr-namespace:Syncfusion.Maui.DataSource;assembly=Syncfusion.Maui.DataSource"
+             xmlns:dext="clr-namespace:Syncfusion.Maui.DataSource.Extensions;assembly=Syncfusion.Maui.DataSource"
              xmlns:views="clr-namespace:ListViewDragDrop.Views"
              x:Class="ListViewDragDrop.Views.MainPage"
              x:DataType="viewmodel:MainViewModel"
              >
 
     <ContentPage.Resources>
+
+        <!-- #region NamedColor styles and templates -->
+        
         <Style TargetType="Ellipse" x:Key="ColorValueStyle"
               x:DataType="model:NamedColor">
             <Setter Property="Fill"
@@ -29,30 +34,110 @@
         <Style TargetType="Label" x:Key="ColorNameStyle"
               x:DataType="model:NamedColor">
             <Setter Property="HorizontalTextAlignment"
-                   Value="Start"/>
+                    Value="Start"/>
             <Setter Property="VerticalTextAlignment"
-                   Value="Center"/>
+                    Value="Center"/>
             <Setter Property="FontSize"
-                   Value="20"/>
+                    Value="20"/>
             <Setter Property="Margin"
-                   Value="0"/>
+                    Value="0"/>
             <Setter Property="Text"
-                   Value="{Binding Name}"/>
+                    Value="{Binding Name}"/>
             <Setter Property="MaxLines"
-                   Value="1"/>
+                    Value="1"/>
         </Style>
 
         <DataTemplate x:Key="NamedColorItemTemplate" x:DataType="model:NamedColor">
             <Grid Margin="0" 
-                 BackgroundColor="Transparent"
-                 ColumnDefinitions="Auto, *"
-                 ColumnSpacing="5">
+                  BackgroundColor="Transparent"
+                  ColumnDefinitions="Auto, *"
+                  ColumnSpacing="5">
                 <Ellipse Grid.Column="0"
-                        Style="{StaticResource ColorValueStyle}"/>
+                         Style="{StaticResource ColorValueStyle}"/>
                 <Label Grid.Column="1"
-                      Style="{StaticResource ColorNameStyle}"/>
+                       Style="{StaticResource ColorNameStyle}"/>
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="NamedColorDragItemTemplate">
+            <views:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
+        </DataTemplate>
+
+        <!-- #endregion NamedColor styles and templates -->
+
+        <!-- #region Player styles and templates -->
+
+        <viewmodel:BoolToGlyphConverter x:Key="BoolToGlyphConverter"/>
+        <Color x:Key="HeaderTextColor">WhiteSmoke</Color>
+        <Color x:Key="HeaderBackgroundColor">Gray</Color>
+
+        <Style TargetType="Label" x:Key="PlayerStyle"
+              x:DataType="model:Player">
+            <Setter Property="HorizontalTextAlignment"
+                    Value="Start"/>
+            <Setter Property="VerticalTextAlignment"
+                    Value="Center"/>
+            <Setter Property="FontSize"
+                    Value="20"/>
+            <Setter Property="Margin"
+                    Value="0"/>
+            <Setter Property="Text"
+                    Value="{Binding Name}"/>
+            <Setter Property="ToolTipProperties.Text"
+                    Value="{Binding Team.Name}"/>
+        </Style>
+
+        <Style TargetType="Label" x:Key="TeamHeaderNameStyle"
+              x:DataType="dext:GroupResult">
+            <Setter Property="HorizontalTextAlignment"
+                    Value="Start"/>
+            <Setter Property="VerticalTextAlignment"
+                    Value="Center"/>
+            <Setter Property="FontSize"
+                    Value="20"/>
+            <Setter Property="FontAttributes"
+                    Value="Bold"/>
+            <Setter Property="Margin"
+                    Value="0"/>
+            <Setter Property="Text"
+                    Value="{Binding Key}"/>
+            <Setter Property="TextColor"
+                    Value="{StaticResource HeaderTextColor}"/>
+        </Style>
+
+        <DataTemplate x:Key="PlayerItemTemplate" x:DataType="model:Player">
+            <Label Text="{Binding Name}"
+                   Style="{StaticResource PlayerStyle}"/>
+        </DataTemplate>
+
+        <!-- display the player name with an indent when grouping by team -->
+        <DataTemplate x:Key="GroupedPlayerItemTemplate" x:DataType="model:Player">
+            <Label Text="{Binding Name}"
+                   Style="{StaticResource PlayerStyle}"
+                   Padding="20,0,0,0"/>
+        </DataTemplate>
+
+        <!-- The SfListView.GroupHeaderTemplate when grouping players by team -->
+        <DataTemplate x:Key="TeamHeaderTemplate" x:DataType="dext:GroupResult">
+            <Grid ColumnDefinitions="*, Auto"
+                  BackgroundColor="{StaticResource HeaderBackgroundColor}"
+                  ColumnSpacing="5">
+                <Label Grid.Column="0" 
+                       Style="{StaticResource TeamHeaderNameStyle}"/>
+                <Label Grid.Column="1"
+                       FontFamily="FluentUI"
+                       FontAttributes="Bold"
+                       FontSize="20"
+                       Text="{Binding IsExpand, Converter={StaticResource BoolToGlyphConverter}}"
+                       TextColor="{StaticResource HeaderTextColor}"/>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PlayerDragItemTemplate">
+            <views:DragItemView ListView="{Binding Source={x:Reference PlayerList}}"/>
+        </DataTemplate>
+
+        <!-- #endregion Player styles and templates -->
 
         <Style TargetType="sf:SfListView" x:Key="DragDropStyle">
             <!-- Populate the DragItemStyle attached property used by DragItemView -->
@@ -63,23 +148,20 @@
                                      ValidGlyph="{x:Static res:FluentUI.ArrowSortFilled}"
                                      />
             </Setter>
-            <!-- Define the DragItemTemplate with our custom drag item visualizer. -->
-            <Setter Property="DragItemTemplate">
-                <DataTemplate>
-                    <views:DragItemView ListView="{Binding Source={x:Reference ColorList}}"/>
-                </DataTemplate>
-            </Setter>
         </Style>
 
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="*, Auto, Auto">
+    <Grid RowDefinitions="*, Auto, Auto"
+          ColumnDefinitions="1*, 1*">
         <!-- The style defines the DragItemTemplate and the DragItemStyle -->
         <sf:SfListView Style="{StaticResource DragDropStyle}" 
                        x:Name="ColorList"
                        Grid.Row="0" 
+                       Grid.Column="0"
                        ItemsSource="{Binding Colors}"
                        ItemTemplate="{StaticResource NamedColorItemTemplate}"
+                       DragItemTemplate="{StaticResource NamedColorDragItemTemplate}"
                        ItemDragging="OnItemDragging"
                        DragStartMode="OnHold"
                        SelectionMode="Single"
@@ -87,18 +169,61 @@
                        SelectionBackground="CornflowerBlue"
                        Margin="5,0,5,0"
                        >
-            <sf:SfListView.DragDropController UpdateSource="{Binding UpdateSource}"/>
+            <sf:SfListView.DragDropController UpdateSource="{Binding ColorsDragHandler.UpdateSource}"/>
         </sf:SfListView>
 
         <Label Text="Drag an item to a new position."
                Grid.Row="1"
+               Grid.Column="0"
                FontAttributes="Bold"
                HorizontalOptions="Center"
                VerticalOptions="Center"
                />
         <Label Text="NOTE: Items cannot be dropped on an item with the same first letter."
                Grid.Row="2"
+               Grid.Column="0"
                FontAttributes="Italic"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               />
+
+        <sf:SfListView Style="{StaticResource DragDropStyle}" 
+                       x:Name="PlayerList"
+                       Grid.Row="0" 
+                       Grid.Column="1"
+                       ItemsSource="{Binding Players}"
+                       ItemTemplate="{StaticResource GroupedPlayerItemTemplate}"
+                       GroupHeaderTemplate="{StaticResource TeamHeaderTemplate}"
+                       DragItemTemplate="{StaticResource PlayerDragItemTemplate}"
+                       IsStickyGroupHeader="True"
+                       AllowGroupExpandCollapse="True"
+                       ItemDragging="OnItemDragging"
+                       DragStartMode="OnHold"
+                       SelectionMode="Single"
+                       ItemSpacing="0"
+                       SelectionBackground="CornflowerBlue"
+                       Margin="5,0,5,0"
+                       >
+            <sf:SfListView.DragDropController UpdateSource="{Binding PlayerDragHandler.UpdateSource}"/>
+            <sf:SfListView.DataSource>
+                <!-- NOTE: When setting <data:DataSource LiveDataUpdateMode="AllowDataShaping"> 
+                     an infinite loop occurs in SfListView's DragAction.Start handler the second
+                     time a drag/drop action is attempted.
+                     To repro, update the below data:DataSource line to add AllowDataShaping.
+                -->
+                <data:DataSource>
+                    <data:DataSource.GroupDescriptors>
+                        <!-- Group by Player.Team -->
+                        <data:GroupDescriptor PropertyName="Team"/>
+                    </data:DataSource.GroupDescriptors>
+                </data:DataSource>
+            </sf:SfListView.DataSource>
+        </sf:SfListView>
+
+        <Label Text="Move a player within a team or to another team."
+               Grid.Row="1"
+               Grid.Column="1"
+               FontAttributes="Bold"
                HorizontalOptions="Center"
                VerticalOptions="Center"
                />
