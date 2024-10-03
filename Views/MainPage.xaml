@@ -200,6 +200,7 @@
                        ItemDragging="OnItemDragging"
                        DragStartMode="OnHold"
                        SelectionMode="Single"
+                       SelectedItem="{Binding SelectedPlayer, Mode=TwoWay}"
                        ItemSpacing="0"
                        SelectionBackground="CornflowerBlue"
                        Margin="5,0,5,0"
@@ -220,12 +221,27 @@
             </sf:SfListView.DataSource>
         </sf:SfListView>
 
-        <Label Text="Move a player within a team or to another team."
-               Grid.Row="1"
-               Grid.Column="1"
-               FontAttributes="Bold"
-               HorizontalOptions="Center"
-               VerticalOptions="Center"
-               />
+        <Grid Grid.Row="1"
+              Grid.Column="1"
+              ColumnDefinitions="*, Auto"
+              ColumnSpacing="5"
+              >
+            <Entry Grid.Column="0"
+                   FontSize="20"
+                   IsEnabled="{Binding CanAddPlayer}"
+                   Text="{Binding NewPlayerName, Mode=TwoWay}"
+                   Placeholder="{Binding AddPlayerCommand.Description}"
+                   PlaceholderColor="LightGray"
+                   ReturnCommand="{Binding AddPlayerCommand}"
+                   />
+            <Button Grid.Column="1"
+                    FontSize = "20" 
+                    Text="{Binding AddPlayerCommand.Text}"
+                    ToolTipProperties.Text="{Binding AddPlayerCommand.Description}"
+                    Command="{Binding AddPlayerCommand}"
+                    IsEnabled="{Binding AddPlayerCommand.IsEnabled}"
+                    FontAttributes="Bold"
+                    />
+        </Grid>
     </Grid>
 </ContentPage>

@@ -1,14 +1,19 @@
 ﻿namespace ListViewDragDrop.ViewModel;
+
+using ListViewDragDrop.DragDrop;
 using ListViewDragDrop.Model;
 using ListViewDragDrop.ObjectModel;
 using System.Collections.ObjectModel;
-using ListViewDragDrop.DragDrop;
+using System.ComponentModel;
 
 /// <summary>
 /// Provides a view model for illustrating drag and drop logic.
 /// </summary>
 internal class MainViewModel : ObservableObject
 {
+    string _newPlayerName;
+    Player _selectedPlayer;
+
     /// <summary>
     /// Initializes a new instance of this class.
     /// </summary>
@@ -19,7 +24,10 @@ internal class MainViewModel : ObservableObject
 
         ColorDragHandler = new ColorDragDropHandler(Colors, updateSource:true);
         PlayerDragHandler = new PlayerDragDropHandler(updateSource:true);
+        AddPlayerCommand = new Command(OnAddPlayer, false, "+", "Add a new player to a player's team.");
     }
+
+    #region Colors
 
     /// <summary>
     /// Gets the <see cref="NamedColor"/> collection.
@@ -29,20 +37,99 @@ internal class MainViewModel : ObservableObject
         get;
     }
 
+    /// <summary>
+    /// Gets the <see cref="NamedColor"/> drag and drop handler.
+    /// </summary>
     public IDragDropHandler ColorDragHandler
     {
         get;
     }
 
+    #endregion Colors
+
+    #region Players
+
+    /// <summary>
+    /// Gets the <see cref="Player"/> collection.
+    /// </summary>
     public ObservableCollection<Player> Players
     {
         get;
     }
 
+    /// <summary>
+    /// Gets or sets the selected <see cref="Player"/>.
+    /// </summary>
+    public Player SelectedPlayer
+    {
+        get => _selectedPlayer;
+        set 
+        {
+            if (SetProperty(ref _selectedPlayer, value, SelectedItemChangedEventArgs))
+            {
+                OnPropertyChanged(CanAddPlayerChangedEventArgs);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the <see cref="Player"/> drag and drop handler.
+    /// </summary>
     public IDragDropHandler PlayerDragHandler
     {
         get;
     }
+
+    #endregion Players
+
+    #region Add Player
+
+    /// <summary>
+    /// The name of the new player.
+    /// </summary>
+    public string NewPlayerName
+    {
+        get => _newPlayerName;
+        set
+        {
+            if (SetProperty(ref _newPlayerName, value, PlayerNameChangedEventArgs))
+            {
+                AddPlayerCommand.IsEnabled = !string.IsNullOrEmpty(_newPlayerName);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Provides a command to add a new player.
+    /// </summary>
+    public ICommand AddPlayerCommand
+    {
+        get;
+    }
+
+    public bool CanAddPlayer
+    {
+        get => _selectedPlayer != null;
+    }
+
+    void OnAddPlayer(ICommand command)
+    {
+        if (_selectedPlayer != null && !string.IsNullOrEmpty(NewPlayerName))
+        {
+            Players.Add(new(_newPlayerName) { Team = _selectedPlayer.Team });
+            NewPlayerName = string.Empty;
+        }
+    }
+
+    #endregion Add Player
+
+    #region Static PropertyChangedEventArgs
+
+    static readonly PropertyChangedEventArgs CanAddPlayerChangedEventArgs = new(nameof(CanAddPlayer));
+    static readonly PropertyChangedEventArgs PlayerNameChangedEventArgs = new(nameof(NewPlayerName));
+    static readonly PropertyChangedEventArgs SelectedItemChangedEventArgs = new(nameof(SelectedPlayer));
+
+    #endregion Static PropertyChangedEventArgs
 
     #region Static Initialization - create the teams and players
 
@@ -99,5 +186,4 @@ internal class MainViewModel : ObservableObject
     }
 
     #endregion Static Initialization - create the teams and players
-
 }
