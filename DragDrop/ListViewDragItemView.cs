@@ -41,6 +41,8 @@ public abstract class ListViewDragItemView<T> : ContentView
         {
             // Create the item's view and set it as the content of the ContentPresenter.
             ItemPresenter.Content = ItemTemplate.CreateView(this, BindingContext);
+            // Use the same horizontal options as the item's view.
+            HorizontalOptions = ItemPresenter.Content.HorizontalOptions;
         }
         else
         {

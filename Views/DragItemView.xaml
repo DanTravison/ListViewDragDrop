@@ -8,10 +8,12 @@
                                >
     <ContentView.ControlTemplate>
         <ControlTemplate>
-            <Grid ColumnDefinitions="Auto, *">
+            <Grid ColumnDefinitions="Auto, Auto"
+                  ColumnSpacing="5">
+                <ContentPresenter x:Name="ItemPresenter" Grid.Column="0"/>
                 <Label BindingContext="{TemplateBinding DragItemStyle}"
                        x:DataType="views:DragItemStyle"
-                       Grid.Column="0"
+                       Grid.Column="1"
                        FontFamily="FluentUI"
                        Text="{Binding DragGlyph, Mode=OneWay}"
                        TextColor="{Binding DragColor, Mode=OneWay}"
@@ -20,7 +22,6 @@
                        HorizontalTextAlignment="Center"
                        VerticalTextAlignment="Center"
                        />
-                <ContentPresenter x:Name="ItemPresenter" Grid.Column="1"/>
             </Grid>
         </ControlTemplate>
     </ContentView.ControlTemplate>

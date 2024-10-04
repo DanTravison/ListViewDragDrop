@@ -51,7 +51,8 @@
             <Grid Margin="0" 
                   BackgroundColor="Transparent"
                   ColumnDefinitions="Auto, *"
-                  ColumnSpacing="5">
+                  ColumnSpacing="5"
+                  HorizontalOptions="Center">
                 <Ellipse Grid.Column="0"
                          Style="{StaticResource ColorValueStyle}"/>
                 <Label Grid.Column="1"
