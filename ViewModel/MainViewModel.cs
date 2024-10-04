@@ -1,25 +1,33 @@
 ﻿namespace ListViewDragDrop.ViewModel;
 
-using Syncfusion.Maui.ListView;
+using ListViewDragDrop.DragDrop;
 using ListViewDragDrop.Model;
 using ListViewDragDrop.ObjectModel;
 using System.Collections.ObjectModel;
-using ListViewDragDrop.DragDrop;
+using System.ComponentModel;
 
 /// <summary>
 /// Provides a view model for illustrating drag and drop logic.
 /// </summary>
-internal class MainViewModel : ObservableObject, IDragDropHandler
+internal class MainViewModel : ObservableObject
 {
+    string _newPlayerName;
+    Player _selectedPlayer;
+
     /// <summary>
     /// Initializes a new instance of this class.
     /// </summary>
-    /// <param name="updateSource">The value for <see cref="UpdateSource"/>.</param>
-    public MainViewModel(bool updateSource = false)
+    public MainViewModel()
     {
-        UpdateSource = updateSource;
         Colors = new(NamedColor.All);
+        Players = new(_allPlayers);
+
+        ColorDragHandler = new ColorDragDropHandler(Colors, updateSource:true);
+        PlayerDragHandler = new PlayerDragDropHandler(updateSource:true);
+        AddPlayerCommand = new Command(OnAddPlayer, false, "+", "Add a new player to a player's team.");
     }
+
+    #region Colors
 
     /// <summary>
     /// Gets the <see cref="NamedColor"/> collection.
@@ -29,73 +37,153 @@ internal class MainViewModel : ObservableObject, IDragDropHandler
         get;
     }
 
-    #region IDragDropHandler
+    /// <summary>
+    /// Gets the <see cref="NamedColor"/> drag and drop handler.
+    /// </summary>
+    public IDragDropHandler ColorDragHandler
+    {
+        get;
+    }
+
+    #endregion Colors
+
+    #region Players
 
     /// <summary>
-    /// Gets the value indicating if the <see cref="SfListView"/> should
-    /// automatically update the source collection when Drop is handled.
+    /// Gets the <see cref="Player"/> collection.
     /// </summary>
-    /// <value>true to enable updating the collection source by <see cref="SfListView"/>;
-    /// otherwise, false to have <see cref="Drop"/> update the source collection.</value>
-    public bool UpdateSource
+    public ObservableCollection<Player> Players
     {
         get;
     }
 
     /// <summary>
-    /// Determines if an item can be dragged.
+    /// Gets or sets the selected <see cref="Player"/>.
     /// </summary>
-    /// <param name="item">The item to drag.</param>
-    /// <param name="itemIndex">The zero-based index of the item to drag.</param>
-    /// <returns>true if the item can be dragged; otherwise, false.</returns>
-    public bool CanDrag(object item, int itemIndex)
+    public Player SelectedPlayer
     {
-        return (item is NamedColor);
-    }
-
-    static bool CanDrop(NamedColor color, NamedColor targetColor)
-    {
-        // simulate disabling drop for selected items.
-        return color.Name[0] != targetColor.Name[0];
+        get => _selectedPlayer;
+        set 
+        {
+            if (SetProperty(ref _selectedPlayer, value, SelectedItemChangedEventArgs))
+            {
+                OnPropertyChanged(CanAddPlayerChangedEventArgs);
+            }
+        }
     }
 
     /// <summary>
-    /// Determines if an item can be dropped on a target.
+    /// Gets the <see cref="Player"/> drag and drop handler.
     /// </summary>
-    /// <param name="item">The dragged item.</param>
-    /// <param name="itemIndex">The zero-based index of the dragged item.</param>
-    /// <param name="target">The target item.</param>
-    /// <param name="targetIndex">The zero-based index of the target item.</param>
-    /// <returns>true if the item can be dropped; otherwise, false.</returns>
-    public bool CanDrop(object item, int itemIndex, object target, int targetIndex)
+    public IDragDropHandler PlayerDragHandler
     {
-        bool result = false;
-        if (item is NamedColor color && target is NamedColor targetColor)
+        get;
+    }
+
+    #endregion Players
+
+    #region Add Player
+
+    /// <summary>
+    /// The name of the new player.
+    /// </summary>
+    public string NewPlayerName
+    {
+        get => _newPlayerName;
+        set
         {
-            result = itemIndex == targetIndex || CanDrop(color, targetColor);
+            if (SetProperty(ref _newPlayerName, value, PlayerNameChangedEventArgs))
+            {
+                AddPlayerCommand.IsEnabled = !string.IsNullOrEmpty(_newPlayerName);
+            }
         }
-        return result;
     }
 
     /// <summary>
-    /// Drops an item on a target.
+    /// Provides a command to add a new player.
     /// </summary>
-    /// <param name="item">The item to drop.</param>
-    /// <param name="itemIndex">The zero-based index of the item to drop.</param>
-    /// <param name="target">The target item.</param>
-    /// <param name="targetIndex">The zero-based index of the target item.</param>
-    /// <returns>true if the item was dropped; otherwise, false.</returns>
-    public bool Drop(object item, int itemIndex, object target, int targetIndex)
+    public ICommand AddPlayerCommand
     {
-        bool result = CanDrop(item, itemIndex, target, targetIndex);
-        // NOTE: If UpdateSource is true, the SfListView will update the source collection;
-        // otherwise, we update the source collection here.
-        if (result && !UpdateSource && itemIndex != targetIndex)
-        {
-            Colors.Move(itemIndex, targetIndex);
-        }
-        return result;
+        get;
     }
 
-    #endregion IDragDropHandler
+    public bool CanAddPlayer
+    {
+        get => _selectedPlayer != null;
+    }
+
+    void OnAddPlayer(ICommand command)
+    {
+        if (_selectedPlayer != null && !string.IsNullOrEmpty(NewPlayerName))
+        {
+            Players.Add(new(_newPlayerName) { Team = _selectedPlayer.Team });
+            NewPlayerName = string.Empty;
+        }
+    }
+
+    #endregion Add Player
+
+    #region Static PropertyChangedEventArgs
+
+    static readonly PropertyChangedEventArgs CanAddPlayerChangedEventArgs = new(nameof(CanAddPlayer));
+    static readonly PropertyChangedEventArgs PlayerNameChangedEventArgs = new(nameof(NewPlayerName));
+    static readonly PropertyChangedEventArgs SelectedItemChangedEventArgs = new(nameof(SelectedPlayer));
+
+    #endregion Static PropertyChangedEventArgs
+
+    #region Static Initialization - create the teams and players
+
+    static readonly Team[] _allTeams =
+    [
+        new Team("Team 1"),
+        new Team("Team 2"),
+        new Team("Team 3"),
+        new Team("Team 4"),
+        new Team("Team 5"),
+        new Team("Team 6"),
+    ];
+
+    static readonly Player[] _allPlayers =
+    [
+        new Player("John Doe"),
+        new Player("Jane Doe"),
+        new Player("Sam Smith"),
+        new Player("Tom Brown"),
+        new Player("Lucy White"),
+        new Player("Bob Green"),
+        new Player("Alice Black"),
+        new Player("Charlie Orange"),
+        new Player("Eve Red"),
+        new Player("Frank Purple"),
+        new Player("Grace Yellow"),
+        new Player("Henry Blue"),
+        new Player("Ivy Pink"),
+        new Player("Jack Gray"),
+        new Player("Kate Silver"),
+        new Player("Larry Gold"),
+        new Player("Molly Copper"),
+        new Player("Ned Nickel"),
+        new Player("Olive Brass"),
+        new Player("Pete Zinc"),
+        new Player("Quinn Iron"),
+        new Player("Rose Lead"),
+        new Player("Stan Mercury"),
+        new Player("Tina Platinum"),
+        new Player("Uma Titanium"),
+        new Player("Vince Uranium"),
+        new Player("Wendy Tungsten"),
+        new Player("Xavier Silver"),
+        new Player("Yvonne Gold"),
+        new Player("Zack Copper")
+    ];
+
+    static MainViewModel()
+    {
+        for (int x = 0; x < _allPlayers.Length; x++)
+        {
+            _allPlayers[x].Team = _allTeams[x % _allTeams.Length];
+        }
+    }
+
+    #endregion Static Initialization - create the teams and players
 }

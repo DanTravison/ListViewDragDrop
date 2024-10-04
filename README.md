@@ -139,6 +139,52 @@ For DragAction.Dragging and DragAction.Drop actions, it also retrieves the data 
 After calling the handler, it sets ItemDraggingEventArgs.Cancel if a cancel is needed and then calls
 DragItemStyle.DragState to update the visual feedback.
 
+# Drag and Drop with a Grouped SfListView
+The sample adds a grouped SfListView displaying a list of players grouped by their associated team.
+
+Drag and drop is used to change a player's position in the team roster or to move a player to a different team.
+
+## The Data Model:
+The following classes are used to represent the data model:
+
+* RosterEntry.cs: An abstract base class providing a Name property.
+* Team.cs: A RosterEntry
+  * NOTE: Since grouping is based on the Team object, it implements IComparable.
+* Player.cs: A RosterEntry with a Team property.
+* PlayerDragDropHandler.cs: Provides the IDragDropHandler.
+  * The Drop method sets the dragged player's Team property to the Team property of the target item.
+  * UpdateSource is set to true to ensure the dragged Player's order changes in the data source.
+
+## The ViewModel:
+The MainViewModel adds the list of Players and the ability to add a new Player.
+
+* Players: The ObservableCollection of Player objects
+* SelectedPlayer: The currently selected Player.
+  * Used by AddPlayerCommand to determine the new player's Team.
+* NewPlayerName: The name of the new player.
+* AddPlayerCommand: An ICommand to add a new Player to the Players collection.
+  * The Player.Name is set to NewPlayerName and Player.Team is set to SelectedPlayer.Team 
+
+
+## The View:
+MainPage.xaml adds a grouped SfListView for the grouped player list and an Entry control to add a new player.
+
+ItemsSource: Bound to the Players property.
+ItemTemplate: A DataTemplate that displays the Player.Name.
+DragItemTemplate: A DataTemplate that uses the same DragItemView as the color list example.
+SfListView.DataSource: Enables grouping by the Player.Team property.
+
+NOTE: MainPage.OnItemDragging has been updated to distinguish between the color and players
+list view and use the appropriate IDragDropHandler.
+
+To see how it works, drag a player in the list and drop it on a different player.
+If dropped on a player in a different team, the player will be moved to the new team.
+If dropped on a player in the same team, the player will be moved to the new position.
+
+To add a new player, first select a player in the team where the new player should be added.
+Enter the new player's name in the Entry control and press the Add Player button.
+The player will be added to the selected team at the bottom of the team's player list.
+
 ## Integration Notes/Experience
 
 After successfully integrating this into my production project, I have the following observations:
