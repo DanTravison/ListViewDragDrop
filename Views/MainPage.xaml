@@ -207,14 +207,17 @@
                        >
             <sf:SfListView.DragDropController UpdateSource="{Binding PlayerDragHandler.UpdateSource}"/>
             <sf:SfListView.DataSource>
-                <!-- NOTE: When setting <data:DataSource LiveDataUpdateMode="AllowDataShaping"> 
-                     an infinite loop occurs in SfListView's DragAction.Start handler the second
-                     time a drag/drop action is attempted.
-                     To repro, update the below data:DataSource line to add AllowDataShaping.
+                <!-- NOTE: If the view model adds items to the underlying DataSource, 
+                     set the LiveDataUpdateMode="AllowDataShaping" on data:DataSource.
                 -->
                 <data:DataSource>
                     <data:DataSource.GroupDescriptors>
-                        <!-- Group by Player.Team -->
+                        <!-- Group by Player.Team 
+                             IMPORTANT NOTE: The grouped property value MUST implement IComparable.
+                             In this case, Player.Team is a 'Team' object that implements IComparable.
+                             Not doing so can cause the grouped object to appear multiple groups.
+                             This can also cause drag and drop to enter an infinite loop.
+                        -->
                         <data:GroupDescriptor PropertyName="Team"/>
                     </data:DataSource.GroupDescriptors>
                 </data:DataSource>
