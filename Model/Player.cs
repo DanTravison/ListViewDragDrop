@@ -5,7 +5,7 @@ using System.ComponentModel;
 /// <summary>
 /// Provides a player object for the roster.
 /// </summary>
-public sealed class Player : RosterEntry
+public sealed class Player : RosterEntry, IComparable
 {
     Team _team;
 
@@ -21,4 +21,13 @@ public sealed class Player : RosterEntry
     }
 
     static readonly PropertyChangedEventArgs TeamChangedEventArgs = new(nameof(Team));
+
+    #region IComparable 
+
+    public int CompareTo(object obj)
+    {
+        return base.CompareTo(obj as Player);  
+    }
+
+    #endregion IComparable 
 }

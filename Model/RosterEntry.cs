@@ -21,5 +21,14 @@ public abstract class RosterEntry : ObservableObject
         return _name;
     }
 
+    protected int CompareTo(RosterEntry other)
+    {
+        if (other is null)
+        {
+            return -1;
+        }
+        return StringComparer.Ordinal.Compare(_name, other._name);
+    }
+
     static readonly PropertyChangedEventArgs NameChangedEventArgs = new(nameof(Name));
 }
